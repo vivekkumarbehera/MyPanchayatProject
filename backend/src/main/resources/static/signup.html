@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration | Panchayat Samiti Odisha</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        body {
+            background-color: #f4f6f9;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        /* --- OFFICIAL HEADER --- */
+        .gov-header {
+            background: linear-gradient(90deg, #ff9933 0%, #ffffff 50%, #138808 100%);
+            border-bottom: 4px solid #b12e2e;
+            padding: 15px 0;
+        }
+        .header-content {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px 25px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .gov-title {
+            font-family: 'Merriweather', serif;
+            color: #b12e2e;
+            font-weight: 700;
+            margin-bottom: 0;
+            font-size: 1.8rem;
+        }
+        .gov-subtitle {
+            font-size: 0.9rem;
+            color: #333;
+            font-weight: 500;
+        }
+
+        /* --- LEFT SIDEBAR (INFO HUB) --- */
+        .info-sidebar {
+            padding-right: 15px;
+        }
+        .sidebar-card {
+            border: none;
+            border-left: 5px solid #138808; /* Odisha Green */
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .sidebar-header {
+            background-color: #f1f8e9; /* Light Green Tint */
+            padding: 12px 15px;
+            font-weight: bold;
+            border-bottom: 1px solid #e0e0e0;
+            color: #2e7d32;
+        }
+        .sidebar-link {
+            display: block;
+            padding: 10px 15px;
+            color: #444;
+            text-decoration: none;
+            border-bottom: 1px solid #f1f1f1;
+            font-size: 0.95rem;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+        }
+        .sidebar-link i { margin-right: 10px; color: #d35400; }
+        .sidebar-link:hover {
+            background-color: #fff3e0; /* Light Orange Tint */
+            padding-left: 20px;
+            color: #d35400;
+        }
+
+        /* Marquee Animation */
+        .marquee-container {
+            height: 180px;
+            overflow: hidden;
+            position: relative;
+            background: #fff;
+        }
+        .marquee-content {
+            animation: scrollUp 15s linear infinite;
+        }
+        @keyframes scrollUp {
+            0% { transform: translateY(100%); }
+            100% { transform: translateY(-100%); }
+        }
+
+        /* Helpline Box */
+        .helpline-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            padding: 15px;
+        }
+        .helpline-item {
+            background: #fff8e1;
+            padding: 10px;
+            text-align: center;
+            border: 1px solid #ffecb3;
+            border-radius: 4px;
+        }
+        .helpline-number {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #d35400;
+            display: block;
+        }
+
+        /* --- RIGHT SIDE (FORM) --- */
+        .reg-card {
+            border: none;
+            border-top: 5px solid #d35400;
+            border-radius: 8px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.08);
+            height: 100%;
+        }
+        .card-header-custom {
+            background-color: #fff;
+            padding: 25px;
+            border-bottom: 1px solid #eee;
+        }
+        .form-section-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #666;
+            margin-top: 20px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 5px;
+        }
+
+        /* Buttons */
+        .btn-gov {
+            background-color: #d35400;
+            color: white;
+            font-weight: 600;
+            padding: 12px 20px;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+        }
+        .btn-gov:hover {
+            background-color: #bf360c;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* Footer */
+        .gov-footer {
+            background-color: #263238;
+            color: #cfd8dc;
+            padding: 20px 0;
+            margin-top: auto;
+            font-size: 0.85rem;
+            text-align: center;
+            border-top: 5px solid #ff9933;
+        }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+<header class="gov-header shadow-sm">
+    <div class="container d-flex align-items-center justify-content-between">
+        <div class="header-content shadow-sm">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Seal_of_Odisha.png/120px-Seal_of_Odisha.png" alt="Odisha Logo" height="65" class="me-3">
+            <div>
+                <h2 class="gov-title">Panchayat Samiti</h2>
+                <p class="gov-subtitle mb-0">Government of Odisha</p>
+            </div>
+        </div>
+        <div class="d-none d-lg-block text-end header-content">
+            <small class="d-block text-muted">Technical Support</small>
+            <strong class="text-success"><i class="fas fa-phone-alt"></i> 1800-345-6789</strong>
+        </div>
+    </div>
+</header>
+
+<div class="container my-5">
+    <div class="row g-4">
+
+        <div class="col-lg-4 info-sidebar">
+            <div class="sidebar-card">
+                <div class="sidebar-header"><i class="fas fa-bullhorn me-2"></i> Latest Announcements</div>
+                <div class="marquee-container p-3">
+                    <div class="marquee-content">
+                        <p class="text-danger fw-bold">• ALERT: Heavy rain expected in coastal districts.</p>
+                        <hr class="my-2">
+                        <p class="text-dark">• New Beneficiary list for Awas Yojana released.</p>
+                        <hr class="my-2">
+                        <p class="text-dark">• Gram Sabha meeting mandatory for all Sarpanchs.</p>
+                        <hr class="my-2">
+                        <p class="text-dark">• Apply for Ration Card online before 30th.</p>
+                        <hr class="my-2">
+                        <p class="text-success fw-bold">• Farmers can now check KALIA status via SMS.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-card">
+                <div class="sidebar-header"><i class="fas fa-hand-holding-heart me-2"></i> Welfare Schemes</div>
+                <a href="#" class="sidebar-link"><i class="fas fa-seedling"></i> KALIA Yojana</a>
+                <a href="#" class="sidebar-link"><i class="fas fa-first-aid"></i> Biju Swasthya Kalyan</a>
+                <a href="#" class="sidebar-link"><i class="fas fa-home"></i> Mo Ghara Scheme</a>
+                <a href="#" class="sidebar-link"><i class="fas fa-female"></i> Mission Shakti</a>
+            </div>
+
+            <div class="sidebar-card" style="border-left-color: #d35400;">
+                <div class="sidebar-header" style="color: #d35400; background-color: #fff3e0;">
+                    <i class="fas fa-headset me-2"></i> Emergency Helpline
+                </div>
+                <div class="helpline-grid">
+                    <div class="helpline-item">
+                        <small>Sanjog</small>
+                        <span class="helpline-number">155335</span>
+                    </div>
+                    <div class="helpline-item">
+                        <small>Women</small>
+                        <span class="helpline-number">181</span>
+                    </div>
+                    <div class="helpline-item">
+                        <small>Police</small>
+                        <span class="helpline-number">112</span>
+                    </div>
+                    <div class="helpline-item">
+                        <small>Ambulance</small>
+                        <span class="helpline-number">108</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card reg-card">
+                <div class="card-header-custom text-center">
+                    <h3 class="mb-1 text-dark">Citizen Registration</h3>
+                    <p class="text-muted mb-0">Join the digital governance platform of Odisha</p>
+                </div>
+                <div class="card-body p-5">
+
+                    <form id="signupForm">
+
+                        <div class="form-section-title"><i class="fas fa-user-circle me-2"></i> Personal Information</div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold text-secondary">Full Name</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="fas fa-user"></i></span>
+                                    <input type="text" class="form-control" id="name" placeholder="As per Aadhaar" required>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-secondary">Email Verification</label>
+
+                                <div class="input-group mb-2">
+                                    <span class="input-group-text bg-light"><i class="fas fa-envelope"></i></span>
+                                    <input type="email" class="form-control" id="email" placeholder="name@example.com" required>
+                                    <button type="button" class="btn btn-outline-primary" onclick="sendOtp()" id="otpBtn">
+                                        Send OTP
+                                    </button>
+                                </div>
+
+                                <div class="collapse" id="otpSection">
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="fas fa-key"></i></span>
+                                        <input type="text" class="form-control" id="otp" placeholder="Enter 123456">
+                                        <span class="input-group-text text-success"><i class="fas fa-check-circle"></i> Sent</span>
+                                    </div>
+                                    <small class="text-muted">For Demo, use OTP: <strong>123456</strong></small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label fw-bold text-secondary">Create Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="fas fa-lock"></i></span>
+                                <input type="password" class="form-control" id="password" placeholder="Min. 6 characters" required>
+                            </div>
+                        </div>
+
+                        <div class="form-section-title"><i class="fas fa-map-marked-alt me-2"></i> Residential Location</div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-secondary">Select District <span class="text-danger">*</span></label>
+                            <select id="district" class="form-select form-select-lg" onchange="loadBlocks()" required>
+                                <option value="">Loading...</option>
+                            </select>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold text-secondary">Block / Samiti <span class="text-danger">*</span></label>
+                                <select id="block" class="form-select" onchange="loadPanchayats()" disabled required>
+                                    <option value="">Select District First</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold text-secondary">Gram Panchayat <span class="text-danger">*</span></label>
+                                <select id="panchayat" class="form-select" disabled required>
+                                    <option value="">Select Block First</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-check mt-3 mb-4">
+                            <input class="form-check-input" type="checkbox" required id="terms">
+                            <label class="form-check-label text-muted small" for="terms">
+                                I hereby declare that the information provided above is true to the best of my knowledge.
+                            </label>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-gov shadow">
+                                REGISTER NOW <i class="fas fa-arrow-right ms-2"></i>
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+                <div class="card-footer bg-light text-center py-3">
+                    Already have an account? <a href="login.html" class="text-decoration-none fw-bold text-primary">Login Here</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<footer class="gov-footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 text-md-start">
+                <p class="mb-1">&copy; 2026 Panchayat Samiti, Government of Odisha.</p>
+                <small class="text-muted">Content owned by District Administration.</small>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <small>Designed & Developed by NIC Bhubaneswar</small><br>
+                <div class="mt-2 bg-white rounded p-1 d-inline-block text-dark fw-bold px-2">Digital India</div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script>
+    // --- CONFIGURATION ---
+    const LOCATION_API = "http://localhost:8080/api/locations";
+    const AUTH_API = "http://localhost:8080/api/auth";
+
+    let locationData = {};
+
+    // 1. Fetch Location Data Immediately
+    window.addEventListener('load', function() {
+        const districtSelect = document.getElementById("district");
+
+        fetch(LOCATION_API)
+            .then(res => {
+                if (!res.ok) throw new Error("Backend Connection Failed");
+                return res.json();
+            })
+            .then(data => {
+                locationData = data;
+                districtSelect.innerHTML = '<option value="">-- Select Your District --</option>';
+
+                if (Object.keys(data).length === 0) {
+                    alert("Connected to server, but CSV is empty!");
+                    return;
+                }
+
+                Object.keys(locationData).forEach(dist => {
+                    let option = document.createElement("option");
+                    option.value = dist;
+                    option.text = dist;
+                    districtSelect.add(option);
+                });
+            })
+            .catch(err => {
+                console.error("❌ Error:", err);
+                districtSelect.innerHTML = '<option value="">Server Error - Check Console</option>';
+            });
+    });
+
+    // 2. Load Blocks
+    function loadBlocks() {
+        const district = document.getElementById("district").value;
+        const blockSelect = document.getElementById("block");
+        const panchayatSelect = document.getElementById("panchayat");
+
+        blockSelect.innerHTML = '<option value="">-- Select Block --</option>';
+        panchayatSelect.innerHTML = '<option value="">Select District First</option>';
+        blockSelect.disabled = true;
+        panchayatSelect.disabled = true;
+
+        if (district && locationData[district]) {
+            blockSelect.disabled = false;
+            Object.keys(locationData[district]).forEach(block => {
+                let option = document.createElement("option");
+                option.value = block;
+                option.text = block;
+                blockSelect.add(option);
+            });
+        }
+    }
+
+    // 3. Load Panchayats
+    function loadPanchayats() {
+        const district = document.getElementById("district").value;
+        const block = document.getElementById("block").value;
+        const panchayatSelect = document.getElementById("panchayat");
+
+        panchayatSelect.innerHTML = '<option value="">-- Select Panchayat --</option>';
+        panchayatSelect.disabled = true;
+
+        if (district && block && locationData[district][block]) {
+            panchayatSelect.disabled = false;
+            locationData[district][block].forEach(gp => {
+                let option = document.createElement("option");
+                option.value = gp;
+                option.text = gp;
+                panchayatSelect.add(option);
+            });
+        }
+    }
+
+    // 4. SEND OTP (Restored Real Backend Call)
+    function sendOtp() {
+    const email = document.getElementById("email").value;
+    const btn = document.getElementById("otpBtn");
+
+    if(!email || !email.includes("@")) {
+        alert("Please enter a valid email address first.");
+        return;
+    }
+
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+    btn.disabled = true;
+
+    fetch(`${AUTH_API}/send-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email })
+    })
+    .then(async response => {
+        const text = await response.text(); // Get server response text
+
+        if (response.ok) {
+            document.getElementById("otpSection").classList.add("show");
+            btn.innerHTML = '<i class="fas fa-check"></i> Sent';
+            alert(`✅ OTP sent to ${email}`);
+        } else {
+            throw new Error(text || "Server rejected request");
+        }
+    })
+    .catch(err => {
+        console.error("OTP Error:", err);
+        alert("❌ Error: " + err.message); // Now you will see the REAL error
+        btn.innerHTML = "Retry OTP";
+        btn.disabled = false;
+    });
+}
+
+    // 5. REGISTER USER (Restored Real Backend Verification)
+    document.getElementById("signupForm").addEventListener("submit", function(event) {
+        event.preventDefault();
+
+        const otpInput = document.getElementById("otp").value;
+        if(!otpInput) {
+            alert("Please enter the OTP sent to your email.");
+            return;
+        }
+
+        // Collect Data
+        const userData = {
+            name: document.getElementById("name").value,
+            email: document.getElementById("email").value,
+            password: document.getElementById("password").value,
+            district: document.getElementById("district").value,
+            block: document.getElementById("block").value,
+            panchayat: document.getElementById("panchayat").value, // Passing Name
+            role: "CITIZEN",
+            otp: otpInput // Send OTP to backend for verification
+        };
+
+        // Send to Backend
+        fetch(`${AUTH_API}/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(userData)
+        })
+        .then(response => {
+            if (response.ok) {
+                // Success UI
+                document.querySelector('.card-body').innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="fas fa-check-circle text-success fa-5x mb-4"></i>
+                        <h3 class="text-success fw-bold">Registration Successful!</h3>
+                        <p class="text-muted">Welcome, ${userData.name}. Your account has been created.</p>
+                        <a href="login.html" class="btn btn-outline-success mt-3 px-4 shadow">Proceed to Login</a>
+                    </div>
+                `;
+            } else {
+                return response.text().then(text => { throw new Error(text) });
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("❌ Registration Failed: " + err.message); // Likely "Invalid OTP" or "Email exists"
+        });
+    });
+</script>
+</body>
+</html>

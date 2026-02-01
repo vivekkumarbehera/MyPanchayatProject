@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sarpanch Dashboard | Odisha Panchayat</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .admin-header {
+            background-color: #d32f2f; /* Dark Red for Admin Authority */
+            color: white;
+            padding: 15px;
+        }
+        .table-hover tbody tr:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<div class="admin-header d-flex justify-content-between align-items-center">
+    <h3 class="m-0 ms-3">🏛️ Sarpanch Dashboard</h3>
+    <button class="btn btn-outline-light btn-sm me-3" onclick="location.reload()">Refresh Data</button>
+</div>
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-white">
+            <h5 class="mb-0 text-secondary">Pending Grievances</h5>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-hover table-bordered mb-0">
+                <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Citizen Name</th>
+                    <th>Issue Category</th>
+                    <th>Deadline</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody id="complaintTableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API_URL = "http://localhost:8080/api/complaints";
+
+    // 1. Load Data
+    function loadComplaints() {
+        fetch(API_URL)
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.getElementById('complaintTableBody');
+                tableBody.innerHTML = "";
+
+                data.forEach(complaint => {
+                    // Check if it is already resolved
+                    let statusBadge = complaint.status === "Resolved"
+                        ? '<span class="badge bg-success">Resolved</span>'
+                        : '<span class="badge bg-warning text-dark">Pending</span>';
+
+                    // If resolved, show "Done". If pending, show "Resolve Button"
+                    let actionButton = complaint.status === "Resolved"
+                        ? '<span class="text-muted">✔ Done</span>'
+                        : `<button class="btn btn-sm btn-success" onclick="markResolved(${complaint.id})">Resolve</button>`;
+
+                    const row = `
+                        <tr>
+                            <td>#${complaint.id}</td>
+                            <td>${complaint.citizenName || 'Citizen'}</td>
+                            <td>${complaint.category}</td>
+                            <td class="text-danger">${complaint.deadlineDate || 'ASAP'}</td>
+                            <td>${statusBadge}</td>
+                            <td>${actionButton}</td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    // 2. The New Function: Mark as Resolved
+    function markResolved(id) {
+        if(!confirm("Are you sure this grievance is solved?")) return;
+
+        fetch(`${API_URL}/${id}/resolve`, {
+            method: 'PUT' // This matches the @PutMapping in Java
+        })
+        .then(response => {
+            if (response.ok) {
+                alert("Success! Complaint marked as resolved.");
+                loadComplaints(); // Refresh the table automatically
+            } else {
+                alert("Error updating status.");
+            }
+        });
+    }
+
+    // Load data when page opens
+    loadComplaints();
+</script>
+</body>
+</html>

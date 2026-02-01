@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Village Wiki & Audit | MyPanchayat</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', sans-serif; }
+        .wiki-header { background-color: #d35400; color: white; padding: 30px; border-radius: 0 0 20px 20px; margin-bottom: 30px; }
+        .project-card { border-left: 5px solid #d35400; background: white; margin-bottom: 20px; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .progress { height: 20px; border-radius: 10px; }
+        .verified-badge { background-color: #27ae60; color: white; padding: 5px 10px; border-radius: 15px; font-size: 0.8rem; display: inline-block; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="wiki-header text-center">
+        <h1>📜 Village Wiki & Social Audit</h1>
+        <p>Track Budgets. Verify Works. Earn Karma.</p>
+        <button class="btn btn-light btn-sm mt-2" onclick="window.location.href='dashboard.html'">Back to Dashboard</button>
+    </div>
+
+    <div class="row mb-4 text-center">
+        <div class="col-md-4">
+            <div class="card p-3 shadow-sm">
+                <h5 class="text-muted">Total Budget (Year)</h5>
+                <h3 class="text-success">₹ 12,50,000</h3>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3 shadow-sm">
+                <h5 class="text-muted">Funds Utilized</h5>
+                <h3 class="text-primary">₹ 8,20,000</h3>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-3 shadow-sm">
+                <h5 class="text-muted">Active Projects</h5>
+                <h3 id="projectCount">0</h3>
+            </div>
+        </div>
+    </div>
+
+    <h4 class="mb-3 text-secondary">🚧 Ongoing Projects (Social Audit)</h4>
+    <div id="projectList">
+        <p class="text-center">Loading Projects...</p>
+    </div>
+
+</div>
+
+<script>
+    const user = JSON.parse(localStorage.getItem("loggedInUser"));
+    if(!user) { window.location.href = "login.html"; }
+
+    // Mock ID for Panchayat (In real app, get from User object)
+    const panchayatId = user.panchayat ? user.panchayat.id : 1;
+
+    function loadProjects() {
+        fetch(`http://localhost:8080/api/projects/panchayat/${panchayatId}`)
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById("projectCount").innerText = data.length;
+            const container = document.getElementById("projectList");
+            container.innerHTML = "";
+
+            if(data.length === 0) container.innerHTML = "<p class='text-center text-muted'>No projects found for this Panchayat.</p>";
+
+            data.forEach(p => {
+                let statusColor = "bg-warning";
+                if(p.status === "Completed") statusColor = "bg-success";
+
+                // Verify Button (Only if Completed & Not Verified)
+                let verifyAction = "";
+                if(p.status === "Completed" && !p.verifiedByCitizens) {
+                    verifyAction = `
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">Is this work actually done?</small>
+                            <button class="btn btn-sm btn-outline-success" onclick="verifyProject(${p.id})">
+                                <i class="fas fa-camera"></i> Verify & Earn 10 Karma
+                            </button>
+                        </div>
+                    `;
+                } else if (p.verifiedByCitizens) {
+                    verifyAction = `<div class="verified-badge"><i class="fas fa-check-circle"></i> Verified by Citizens</div>`;
+                }
+
+                // Calculate % spent
+                const percent = Math.min(100, Math.round((p.moneySpent / p.budgetAllocated) * 100));
+
+                const html = `
+                    <div class="project-card">
+                        <div class="d-flex justify-content-between">
+                            <h5>${p.projectName}</h5>
+                            <span class="badge ${statusColor}">${p.status}</span>
+                        </div>
+                        <div class="mt-2">
+                            <small>Budget: ₹${p.budgetAllocated.toLocaleString()} | Spent: ₹${p.moneySpent.toLocaleString()}</small>
+                            <div class="progress mt-1">
+                                <div class="progress-bar ${statusColor}" style="width: ${percent}%">${percent}% Spent</div>
+                            </div>
+                        </div>
+                        ${verifyAction}
+                    </div>
+                `;
+                container.innerHTML += html;
+            });
+        });
+    }
+
+    function verifyProject(id) {
+        if(!confirm("Are you at the location? This will mark the project as Verified.")) return;
+
+        // In a real app, we would upload a photo here.
+        // For now, we simulate sending a photo URL.
+        fetch(`http://localhost:8080/api/projects/${id}/verify?userId=${user.id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "text/plain" },
+            body: "http://dummy-image-url.com/proof.jpg"
+        }).then(res => {
+            if(res.ok) {
+                alert("✅ Verified! You earned 10 Karma Points.");
+                loadProjects();
+            } else {
+                alert("Error verifying.");
+            }
+        });
+    }
+
+    loadProjects();
+</script>
+</body>
+</html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grievance Redressal - MyPanchayat</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; }
+
+        .container { max-width: 900px; margin: 0 auto; }
+
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { color: #d35400; margin: 0; }
+        .header p { color: #7f8c8d; }
+
+        /* Form Section */
+        .form-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            border-top: 5px solid #d35400;
+        }
+
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #34495e; }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box; /* Fixes padding issues */
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #d35400;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover { background-color: #e67e22; }
+
+        /* Status Board Section */
+        .status-board { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .status-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 10px; border-bottom: 2px solid #eee; color: #7f8c8d; }
+        td { padding: 12px 10px; border-bottom: 1px solid #eee; }
+
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        .status-pending { background-color: #fff3cd; color: #856404; }
+        .status-resolved { background-color: #d4edda; color: #155724; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>📢 Jan Sunwai (Grievance Portal)</h1>
+        <p>Your Voice, Your Right. Report issues anonymously.</p>
+    </div>
+
+    <div class="form-card">
+        <h3>📝 File a New Complaint</h3>
+        <div class="form-group">
+            <label>Your Name (Optional)</label>
+            <input type="text" id="citizenName" placeholder="Enter name or leave blank for Anonymous">
+        </div>
+        <div class="form-group">
+            <label>Category</label>
+            <select id="category">
+                <option value="Water">🚰 Water Supply</option>
+                <option value="Roads">🛣️ Road Repair</option>
+                <option value="Electricity">💡 Street Lights / Electricity</option>
+                <option value="Garbage">🗑️ Garbage / Sanitation</option>
+                <option value="Corruption">🚫 Corruption / Bribe Demand</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Ward Number</label>
+            <select id="ward">
+                <option value="Ward 1">Ward 1</option>
+                <option value="Ward 2">Ward 2</option>
+                <option value="Ward 3">Ward 3</option>
+                <option value="Ward 4">Ward 4</option>
+                <option value="Ward 5">Ward 5</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Description of Issue</label>
+            <textarea id="description" rows="4" placeholder="Describe the problem in detail..."></textarea>
+        </div>
+        <button onclick="submitComplaint()">🚀 Submit Complaint</button>
+    </div>
+
+    <div class="status-board">
+        <div class="status-header">
+            <h3>📊 Village Complaint Status</h3>
+            <button onclick="loadComplaints()" style="width: auto; padding: 5px 15px; font-size: 14px; background: #95a5a6;">Refresh</button>
+        </div>
+        <table>
+            <thead>
+            <tr>
+                <th>Category</th>
+                <th>Ward</th>
+                <th>Date</th>
+                <th>Deadline</th>
+                <th>Status</th>
+            </tr>
+            </thead>
+            <tbody id="complaintTable">
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // 1. Function to Submit Data
+    function submitComplaint() {
+        const data = {
+            citizenName: document.getElementById('citizenName').value || "Anonymous",
+            category: document.getElementById('category').value,
+            ward: document.getElementById('ward').value,
+            description: document.getElementById('description').value
+        };
+
+        fetch('/api/complaints/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert('Complaint Submitted Successfully! ID: ' + data.id);
+            location.reload(); // Refresh to show in list
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    // 2. Function to Load Data
+    function loadComplaints() {
+        fetch('/api/complaints')
+        .then(response => response.json())
+        .then(data => {
+            const table = document.getElementById('complaintTable');
+            table.innerHTML = ''; // Clear existing
+
+            // Sort by latest first
+            data.reverse();
+
+            data.forEach(c => {
+                const statusClass = c.status === 'RESOLVED' ? 'status-resolved' : 'status-pending';
+                const row = `
+                    <tr>
+                        <td><strong>${c.category}</strong><br><small style="color:#777">${c.description.substring(0,30)}...</small></td>
+                        <td>${c.ward}</td>
+                        <td>${c.createdDate}</td>
+                        <td style="color:#e74c3c; font-weight:bold;">${c.deadlineDate}</td>
+                        <td><span class="status-badge ${statusClass}">${c.status}</span></td>
+                    </tr>
+                `;
+                table.innerHTML += row;
+            });
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    // Load complaints when page opens
+    window.onload = loadComplaints;
+</script>
+
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Village Market | MyPanchayat</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body { background-color: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
+        .market-header { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 40px 0; text-align: center; }
+        .card-listing { border: none; border-radius: 15px; transition: transform 0.3s; overflow: hidden; }
+        .card-listing:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .price-tag { color: #27ae60; font-weight: bold; font-size: 1.2rem; }
+        .type-badge { position: absolute; top: 10px; right: 10px; padding: 5px 12px; border-radius: 20px; color: white; font-size: 0.8rem; }
+        .bg-offer { background-color: #2ecc71; } /* Selling/Renting */
+        .bg-request { background-color: #e67e22; } /* Need Help */
+    </style>
+</head>
+<body>
+
+<div class="market-header">
+    <h1>🌾 Village Marketplace</h1>
+    <p>Buy, Sell, Rent, or Hire locally.</p>
+    <button class="btn btn-warning mt-2" onclick="openPostModal()">+ Post an Ad</button>
+    <button class="btn btn-outline-light mt-2 ms-2" onclick="window.location.href='dashboard.html'">Back to Dashboard</button>
+</div>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-center mb-4 gap-2">
+        <button class="btn btn-light border" onclick="loadListings('ALL')">All</button>
+        <button class="btn btn-light border" onclick="loadListings('OFFER')">For Sale/Rent</button>
+        <button class="btn btn-light border" onclick="loadListings('REQUEST')">Jobs/Wanted</button>
+    </div>
+
+    <div class="row g-4" id="listingGrid">
+        <div class="text-center w-100"><i class="fas fa-spinner fa-spin fa-2x"></i> Loading market data...</div>
+    </div>
+</div>
+
+<div class="modal fade" id="postModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Post a New Listing</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="postForm" onsubmit="submitListing(event)">
+                    <div class="mb-3">
+                        <label>Title</label>
+                        <input type="text" class="form-control" id="title" placeholder="e.g. Tractor for Rent" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label>Type</label>
+                            <select class="form-select" id="type">
+                                <option value="OFFER">I am Offering (Selling)</option>
+                                <option value="REQUEST">I Need (Buying/Hiring)</option>
+                            </select>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label>Category</label>
+                            <select class="form-select" id="category">
+                                <option value="Agriculture">Agriculture</option>
+                                <option value="Labor">Labor/Services</option>
+                                <option value="Goods">Goods/Items</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label>Price (₹)</label>
+                        <input type="number" class="form-control" id="price" placeholder="0 if negotiable">
+                    </div>
+                    <div class="mb-3">
+                        <label>Description</label>
+                        <textarea class="form-control" id="desc" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label>Contact Phone</label>
+                        <input type="text" class="form-control" id="phone" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Post Now</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API_URL = "http://localhost:8080/api/market";
+    const user = JSON.parse(localStorage.getItem("loggedInUser"));
+
+    function loadListings(filterType) {
+        let url = API_URL;
+        if(filterType && filterType !== 'ALL') url += `/type/${filterType}`;
+
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                const grid = document.getElementById("listingGrid");
+                grid.innerHTML = "";
+                if(data.length === 0) grid.innerHTML = "<p class='text-center'>No listings found.</p>";
+
+                data.forEach(item => {
+                    const badgeClass = item.type === 'OFFER' ? 'bg-offer' : 'bg-request';
+                    const badgeText = item.type === 'OFFER' ? 'FOR RENT/SALE' : 'WANTED';
+
+                    const html = `
+                        <div class="col-md-4">
+                            <div class="card card-listing h-100 p-3">
+                                <span class="type-badge ${badgeClass}">${badgeText}</span>
+                                <div class="card-body">
+                                    <h5 class="card-title">${item.title}</h5>
+                                    <h6 class="text-muted mb-2"><i class="fas fa-tag"></i> ${item.category}</h6>
+                                    <p class="card-text small">${item.description}</p>
+                                    <div class="d-flex justify-content-between align-items-center mt-3">
+                                        <span class="price-tag">₹${item.price}</span>
+                                        <a href="tel:${item.contactPhone}" class="btn btn-sm btn-outline-primary"><i class="fas fa-phone"></i> Call</a>
+                                    </div>
+                                    <div class="mt-2 text-end text-muted small">Posted by: ${item.postedBy ? item.postedBy.name : 'Unknown'}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    grid.innerHTML += html;
+                });
+            });
+    }
+
+    function openPostModal() {
+        if(!user) { alert("Please login first!"); window.location.href="login.html"; return; }
+        new bootstrap.Modal(document.getElementById('postModal')).show();
+    }
+
+    function submitListing(e) {
+        e.preventDefault();
+        const payload = {
+            title: document.getElementById("title").value,
+            type: document.getElementById("type").value,
+            category: document.getElementById("category").value,
+            price: document.getElementById("price").value,
+            description: document.getElementById("desc").value,
+            contactPhone: document.getElementById("phone").value
+        };
+
+        fetch(`${API_URL}?userId=${user.id}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        }).then(res => {
+            if(res.ok) {
+                alert("Ad Posted Successfully!");
+                location.reload();
+            } else {
+                alert("Error posting ad.");
+            }
+        });
+    }
+
+    // Load on startup
+    loadListings('ALL');
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

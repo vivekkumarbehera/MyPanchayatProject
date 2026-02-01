@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Panchayat Samiti Odisha</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        body { background-color: #f4f6f9; font-family: 'Roboto', sans-serif; }
+        .login-card { border-top: 5px solid #138808; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .btn-gov { background-color: #138808; color: white; font-weight: 600; }
+        .btn-gov:hover { background-color: #0e6b05; color: white; }
+        .gov-header { background: linear-gradient(90deg, #ff9933 0%, #ffffff 50%, #138808 100%); padding: 10px 0; border-bottom: 4px solid #b12e2e; }
+        #errorMessage { color: red; font-weight: bold; margin-top: 10px; }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+<header class="gov-header shadow-sm text-center">
+    <h2 style="font-family: 'Merriweather', serif; color: #b12e2e; margin: 0;">Panchayat Samiti Login</h2>
+</header>
+
+<div class="container d-flex align-items-center justify-content-center flex-grow-1">
+    <div class="card login-card p-4" style="width: 400px;">
+        <div class="text-center mb-4">
+            <img src="/static/assets/digital_India.PNG" width="80" alt="Logo">
+            <h4 class="mt-3">Citizen Login</h4>
+            <p class="text-muted small">Access your Gram Panchayat Services</p>
+        </div>
+
+        <form onsubmit="handleLogin(event)">
+            <div class="mb-3">
+                <label class="form-label">Email Address</label>
+                <input type="email" id="email" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input type="password" id="password" class="form-control" required>
+            </div>
+            <div id="errorMessage"></div>
+            <button type="submit" class="btn btn-gov w-100 py-2">LOGIN</button>
+        </form>
+
+        <div class="text-center mt-3">
+            <a href="signup.html" class="text-decoration-none text-success">New User? Register Here</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    function handleLogin(e) {
+        e.preventDefault();
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+        const btn = document.querySelector("button[type='submit']");
+        const errorMessage = document.getElementById("errorMessage");
+
+        // Reset error message
+        errorMessage.textContent = "";
+
+        // Simple loading effect
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+        btn.disabled = true;
+
+        fetch("http://localhost:8080/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: email, password: password })
+        })
+        .then(res => {
+            if (res.ok) return res.json();
+            throw new Error("Incorrect Email or Password");
+        })
+        .then(user => {
+            // 1. Save user data to browser storage
+            localStorage.setItem("loggedInUser", JSON.stringify(user));
+
+            // 2. Redirect to Dashboard
+            window.location.href = "dashboard.html";
+        })
+        .catch(err => {
+            // Show error on the page instead of alert
+            errorMessage.textContent = "Login Failed: " + err.message;
+            btn.innerHTML = "LOGIN";
+            btn.disabled = false;
+        });
+    }
+</script>
+</body>
+</html>

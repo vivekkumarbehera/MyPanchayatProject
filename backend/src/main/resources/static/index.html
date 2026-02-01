@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyPanchayat | Government of Odisha</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Merriweather:wght@700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --gov-blue: #002366; /* Official Navy */
+            --gov-orange: #FF9933; /* Saffron */
+            --gov-green: #138808;
+            --light-bg: #f8f9fa;
+            --text-main: #2c3e50;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--light-bg);
+            color: var(--text-main);
+            overflow-x: hidden;
+            /* Fix for Google Translate top spacing issue */
+            top: 0 !important;
+        }
+
+        h1, h2, h3, h4, .navbar-brand {
+            font-family: 'Merriweather', serif;
+        }
+
+        /* --- Top Bar & Ticker --- */
+        .top-bar {
+            background-color: #1a1a1a;
+            color: #ddd;
+            font-size: 0.8rem;
+            padding: 5px 0;
+            min-height: 40px; /* Ensure space for translator */
+        }
+
+        /* --- GOOGLE TRANSLATE CUSTOM STYLES --- */
+        #google_translate_element {
+            display: inline-block;
+        }
+        .goog-te-gadget {
+            font-family: 'Inter', sans-serif !important;
+            font-size: 0px !important; /* Hides 'Powered by Google' text */
+            color: transparent !important;
+        }
+        .goog-te-gadget .goog-te-combo {
+            margin: 0 !important;
+            padding: 2px 5px;
+            font-size: 12px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            background-color: #333;
+            color: #fff;
+            cursor: pointer;
+        }
+        .goog-te-gadget .goog-te-combo:focus {
+            outline: none;
+            border-color: var(--gov-orange);
+        }
+        /* Hide Google Translate Top Frame */
+        .goog-te-banner-frame.skiptranslate {
+            display: none !important;
+        }
+        /* ------------------------------------- */
+
+        .news-ticker {
+            background: var(--gov-blue);
+            color: white;
+            padding: 8px 0;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        .scrolling-text {
+            display: inline-block;
+            animation: scroll 20s linear infinite;
+        }
+        @keyframes scroll {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        /* --- Navbar --- */
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 12px 0;
+        }
+        .nav-link {
+            color: #444 !important;
+            font-weight: 500;
+            margin: 0 10px;
+            position: relative;
+        }
+        .nav-link:after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            background: var(--gov-orange);
+            bottom: 0;
+            left: 0;
+            transition: 0.3s;
+        }
+        .nav-link:hover:after { width: 100%; }
+
+        .btn-login-main {
+            background: var(--gov-blue);
+            color: white;
+            padding: 8px 25px;
+            border-radius: 4px;
+            font-weight: 500;
+            transition: 0.3s;
+        }
+        .btn-login-main:hover {
+            background: var(--gov-orange);
+            color: white;
+        }
+
+        /* --- Hero Section (The Banner) --- */
+        .hero {
+            /* Dark overlay for readability */
+            background: linear-gradient(rgba(0, 35, 102, 0.9), rgba(0, 35, 102, 0.85)),
+                        url('https://upload.wikimedia.org/wikipedia/commons/e/e4/Odisha_Montage.png');
+            background-size: cover;
+            background-position: center;
+            padding: 80px 0;
+            border-bottom: 5px solid var(--gov-orange); /* Govt Style Bottom Border */
+            color: white;
+        }
+
+        /* Leader Photos Frame */
+        .leader-frame img {
+            width: 120px;
+            height: 140px;
+            object-fit: cover;
+            object-position: top;
+            background: white;
+        }
+        .leaders-banner-box {
+            display: inline-flex;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        /* --- Services --- */
+        .service-card {
+            background: white;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 30px;
+            transition: 0.3s;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+        .service-card:hover {
+            box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+            border-color: var(--gov-orange);
+            transform: translateY(-5px);
+        }
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--gov-blue);
+            transition: 0.3s;
+        }
+        .service-card:hover::before { background: var(--gov-orange); }
+
+        /* --- Login Modal --- */
+        .modal-content {
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .modal-header {
+            background: var(--gov-blue);
+            color: white;
+        }
+        .login-choice-card {
+            border: 2px solid #eee;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .login-choice-card:hover {
+            border-color: var(--gov-orange);
+            background: #fff8f0;
+        }
+        .login-choice-card i {
+            font-size: 2.5rem;
+            color: var(--gov-blue);
+            margin-bottom: 10px;
+        }
+        .login-choice-card h5 { margin-top: 10px; font-weight: 600; }
+
+        /* --- Footer --- */
+        footer {
+            background: #111;
+            color: #bbb;
+            padding: 60px 0 20px;
+            margin-top: 80px;
+        }
+        footer h5 { color: white; margin-bottom: 20px; font-family: 'Inter', sans-serif; text-transform: uppercase; letter-spacing: 1px; font-size: 1rem;}
+        footer ul { list-style: none; padding: 0; }
+        footer ul li { margin-bottom: 10px; }
+        footer a { color: #bbb; text-decoration: none; transition: 0.3s; }
+        footer a:hover { color: var(--gov-orange); padding-left: 5px; }
+        .footer-bottom { border-top: 1px solid #333; padding-top: 20px; margin-top: 40px; font-size: 0.85rem; }
+
+    </style>
+</head>
+<body>
+
+<div class="top-bar">
+    <div class="container d-flex justify-content-between align-items-center">
+        <div>
+            <a href="#" class="text-white text-decoration-none me-3">Government of Odisha</a>
+            <span class="text-secondary">|</span>
+            <span class="ms-3"><i class="fas fa-phone-alt me-1"></i> Toll Free: 1800-345-6789</span>
+        </div>
+        <div>
+            <span class="text-white-50 me-2 small">Select Language:</span>
+            <div id="google_translate_element"></div>
+        </div>
+    </div>
+</div>
+
+<div class="news-ticker">
+    <div class="container overflow-hidden">
+        <div class="scrolling-text">
+            <i class="fas fa-bell me-2 text-warning"></i> New Scheme: SUBHADRA Yojana application dates announced. | <i class="fas fa-bullhorn me-2 text-warning"></i> Download your Caste Certificate instantly. | <i class="fas fa-check-circle me-2 text-warning"></i> Digital Panchayat initiatives are now live in 30 districts.
+        </div>
+    </div>
+</div>
+
+<nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="#">
+            <img src="/static/assets/Seal_of_Odisha.png" height="50" alt="Logo" class="me-2">
+            <div class="d-flex flex-column">
+                <span class="fw-bold text-uppercase fs-5" style="color:var(--gov-blue); line-height:1;">My Panchayat</span>
+                <span style="font-size: 0.75rem; letter-spacing: 1px; color: #666;">Panchayat Raj & DW Department</span>
+            </div>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+            <ul class="navbar-nav align-items-center">
+                <li class="nav-item"><a class="nav-link" href="#">Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="#services">Services</a></li>
+                <li class="nav-item"><a class="nav-link" href="schemes.html">Schemes</a></li>
+                <li class="nav-item"><a class="nav-link" href="#grievance">Grievance</a></li>
+                <li class="nav-item ms-3">
+                    <button class="btn btn-login-main" data-bs-toggle="modal" data-bs-target="#loginModal">
+                        <i class="fas fa-sign-in-alt me-2"></i> Login / Register
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<section class="hero">
+    <div class="container">
+        <div class="row align-items-center">
+
+            <div class="col-lg-7 text-white">
+                <div class="mb-3">
+                        <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold">
+                            <i class="fas fa-star me-1"></i> 5T Initiative
+                        </span>
+                </div>
+                <h1 class="display-4 fw-bold mb-3" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
+                    Empowering Rural Odisha
+                </h1>
+                <p class="lead mb-4" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.5); opacity: 0.95;">
+                    Transparent Governance. Timely Services. Direct Grievance Redressal.<br>
+                    Access your Panchayat services from anywhere, anytime.
+                </p>
+
+                <div class="d-flex gap-3 mt-4">
+                    <button class="btn btn-warning fw-bold px-4 py-2 shadow-sm" onclick="location.href='#services'">
+                        View Services
+                    </button>
+                    <button class="btn btn-outline-light fw-bold px-4 py-2" data-bs-toggle="modal" data-bs-target="#loginModal">
+                        <i class="fas fa-bullhorn me-2"></i> Lodge Grievance
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-lg-5 text-center mt-5 mt-lg-0">
+                <div class="p-3 rounded leaders-banner-box justify-content-center gap-4">
+
+                    <div class="text-center">
+                        <div class="leader-frame mb-2">
+                            <img src="/static/assets/NarendraModi.PNG" alt="PM" class="img-fluid rounded border border-2 border-warning shadow">
+                        </div>
+                        <h6 class="text-white mb-0 fw-bold small">Shri Narendra Modi</h6>
+                        <small class="text-warning" style="font-size: 0.7rem;">Hon'ble Prime Minister</small>
+                    </div>
+
+                    <div style="width: 1px; background: rgba(255,255,255,0.3);"></div>
+
+                    <div class="text-center">
+                        <div class="leader-frame mb-2">
+                            <img src="/static/assets/mohan-charan-majhi.PNG" alt="CM" class="img-fluid rounded border border-2 border-warning shadow">
+                        </div>
+                        <h6 class="text-white mb-0 fw-bold small">Shri Mohan Majhi</h6>
+                        <small class="text-warning" style="font-size: 0.7rem;">Hon'ble Chief Minister</small>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<section class="py-5 mt-3" id="services">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h6 class="text-uppercase text-warning fw-bold">E-Governance</h6>
+            <h2 class="fw-bold" style="color: var(--gov-blue);">Public Services</h2>
+            <div style="width: 60px; height: 3px; background: var(--gov-orange); margin: 10px auto;"></div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="service-card">
+                    <div class="mb-3 text-primary"><i class="fas fa-file-signature fa-3x"></i></div>
+                    <h4>Certificates</h4>
+                    <p class="text-muted">Apply for Income, Caste, and Resident certificates online with digital signatures.</p>
+                    <a href="signup.html" class="fw-bold text-decoration-none">Apply Now &rarr;</a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="service-card">
+                    <div class="mb-3 text-success"><i class="fas fa-hand-holding-usd fa-3x"></i></div>
+                    <h4>Welfare Schemes</h4>
+                    <p class="text-muted">Check eligibility for KALIA, Subhadra, and housing schemes instantly.</p>
+                    <a href="schemes.html" class="fw-bold text-decoration-none">Check List &rarr;</a>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="service-card">
+                    <div class="mb-3 text-danger"><i class="fas fa-bullhorn fa-3x"></i></div>
+                    <h4>Public Grievance</h4>
+                    <p class="text-muted">Report issues regarding water, roads, or sanitation directly to authorities.</p>
+                    <a href="signup.html" class="fw-bold text-decoration-none">File Complaint &rarr;</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-4 mb-4">
+                <img src="/static/assets/digital_India.PNG" height="50" class="mb-3 bg-white rounded p-1">
+                <h5 class="mt-2">MyPanchayat Portal</h5>
+                <p class="small text-secondary">
+                    An initiative by the Panchayat Raj & Drinking Water Department, Government of Odisha, to ensure transparent governance at the grassroots level.
+                </p>
+            </div>
+            <div class="col-md-6 col-lg-2 mb-4">
+                <h5>Quick Links</h5>
+                <ul>
+                    <li><a href="#">About Department</a></li>
+                    <li><a href="#">Notifications</a></li>
+                    <li><a href="#">RTI</a></li>
+                    <li><a href="#">Contact Us</a></li>
+                </ul>
+            </div>
+            <div class="col-md-6 col-lg-3 mb-4">
+                <h5>Important Services</h5>
+                <ul>
+                    <li><a href="#">View Panchayat Profile</a></li>
+                    <li><a href="#">Beneficiary List</a></li>
+                    <li><a href="#">Track Application</a></li>
+                    <li><a href="#">Tender Notices</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-3 mb-4">
+                <h5>Contact Info</h5>
+                <ul class="small text-secondary">
+                    <li><i class="fas fa-map-marker-alt me-2"></i> Lok Seva Bhawan, Bhubaneswar</li>
+                    <li><i class="fas fa-phone me-2"></i> 0674 - 2392874</li>
+                    <li><i class="fas fa-envelope me-2"></i> prsec.or@nic.in</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom text-center">
+            <p>&copy; 2026 Government of Odisha. All Rights Reserved. | Designed for Digital India.</p>
+        </div>
+    </div>
+</footer>
+
+<div class="modal fade" id="loginModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold">Select Login Type</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-center text-muted mb-4">Please select your role to proceed</p>
+
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="login-choice-card" onclick="window.location.href='login.html'">
+                            <i class="fas fa-users"></i>
+                            <h5>Citizen</h5>
+                            <small class="text-muted">Public User</small>
+                        </div>
+                    </div>
+
+                    <div class="col-6">
+                        <div class="login-choice-card" onclick="window.location.href='official_login.html'">
+                            <i class="fas fa-university"></i>
+                            <h5>Official</h5>
+                            <small class="text-muted">Panchayat Staff</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4 pt-3 border-top">
+                    <span class="small text-muted">New User? </span>
+                    <a href="signup.html" class="fw-bold text-decoration-none" style="color: var(--gov-orange)">Register Here</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({
+        pageLanguage: 'en',
+        includedLanguages: 'en,or,hi', // Includes English, Odia, and Hindi
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+        autoDisplay: false
+      }, 'google_translate_element');
+    }
+</script>
+<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+</body>
+</html>

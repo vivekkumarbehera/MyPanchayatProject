@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Super Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f6f9; }
+        .card { border: none; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .table th { background-color: #007bff; color: white; }
+    </style>
+</head>
+<body class="p-5">
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>👨‍💻 Developer Dashboard</h2>
+        <button onclick="loadRequests()" class="btn btn-outline-primary">🔄 Refresh List</button>
+    </div>
+
+    <div class="card p-4">
+        <h4 class="mb-3">Pending Sarpanch Requests</h4>
+
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered text-center">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Panchayat</th>
+                    <th>District</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody id="requestTable">
+                </tbody>
+            </table>
+        </div>
+        <p id="noDataMsg" class="text-center text-muted mt-3" style="display:none;">No pending requests found.</p>
+    </div>
+</div>
+
+<script>
+    const API_BASE = "http://localhost:8080/api/auth";
+
+    // 1. Load Pending Users
+    function loadRequests() {
+        fetch(`${API_BASE}/pending-users`)
+            .then(res => res.json())
+            .then(users => {
+                const tbody = document.getElementById("requestTable");
+                const noDataMsg = document.getElementById("noDataMsg");
+                tbody.innerHTML = "";
+
+                if (users.length === 0) {
+                    noDataMsg.style.display = "block";
+                    return;
+                }
+
+                noDataMsg.style.display = "none";
+
+                users.forEach(u => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${u.id}</td>
+                            <td>${u.name}</td>
+                            <td>${u.email}</td>
+                            <td>${u.panchayat || 'N/A'}</td>
+                            <td>${u.district || 'N/A'}</td>
+                            <td>
+                                <button class="btn btn-success btn-sm" onclick="approve(${u.id}, '${u.name}')">
+                                    ✅ Approve & Send Mail
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            })
+            .catch(err => console.error("Error loading requests:", err));
+    }
+
+    // 2. Approve Function
+    function approve(id, name) {
+        if(!confirm(`Are you sure you want to approve ${name}? \nThis will generate a password and email it to them.`)) return;
+
+        // Show loading state
+        document.body.style.cursor = "wait";
+
+        fetch(`${API_BASE}/approve-user?userId=${id}`, { method: "POST" })
+            .then(res => res.json())
+            .then(data => {
+                alert("🎉 Success! " + data.message);
+                document.body.style.cursor = "default";
+                loadRequests(); // Refresh list to remove the approved user
+            })
+            .catch(err => {
+                alert("Error approving user");
+                document.body.style.cursor = "default";
+            });
+    }
+
+    // Load on start
+    loadRequests();
+</script>
+
+</body>
+</html>

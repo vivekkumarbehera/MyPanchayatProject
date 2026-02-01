@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Official Registration | Govt of Odisha</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --gov-orange: #ff9933;
+            --gov-green: #138808;
+            --gov-blue: #000080;
+        }
+        body {
+            background-color: #f4f7f6;
+            font-family: 'Noto Sans', sans-serif;
+            background-image: radial-gradient(#e0e0e0 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .main-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .reg-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            overflow: hidden;
+            width: 100%;
+            max-width: 900px;
+            border-top: 6px solid var(--gov-orange);
+        }
+        .card-header-custom {
+            background: #fff;
+            padding: 25px;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+        }
+        .card-header-custom img {
+            height: 60px;
+            margin-bottom: 10px;
+        }
+        .form-section-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #666;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 5px;
+        }
+        .form-control, .form-select {
+            border-radius: 6px;
+            padding: 10px 15px;
+            border: 1px solid #ccc;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--gov-orange);
+            box-shadow: 0 0 0 3px rgba(255, 153, 51, 0.15);
+        }
+        .btn-submit {
+            background-color: var(--gov-orange);
+            color: white;
+            font-weight: 700;
+            padding: 12px;
+            border: none;
+            transition: 0.3s;
+        }
+        .btn-submit:hover {
+            background-color: #e68a00;
+            color: white;
+        }
+
+        /* VERTICAL DIVIDER LOGIC */
+        @media (min-width: 768px) {
+            .divider-end {
+                border-right: 1px solid #e0e0e0;
+                padding-right: 2rem;
+            }
+            .divider-start-next {
+                padding-left: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-container">
+    <div class="reg-card">
+        <div class="card-header-custom">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fe/Seal_of_Odisha.png/1200px-Seal_of_Odisha.png" alt="Odisha Seal">
+            <h4 class="fw-bold text-dark m-0">Sarpanch Registration Portal</h4>
+            <small class="text-muted">Panchayati Raj & Drinking Water Department</small>
+        </div>
+
+        <div class="p-4">
+            <div id="statusMsg" class="alert d-none"></div>
+
+            <form id="regForm">
+                <div class="row">
+                    <div class="col-md-6 mb-4 divider-end">
+                        <div class="form-section-title">Official Details</div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Full Name</label>
+                            <input type="text" id="name" class="form-control" placeholder="Ex: Ramesh Das" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Official Email ID</label>
+                            <input type="email" id="email" class="form-control" placeholder="sarpanch.gp@odisha.gov.in" required>
+                            <div class="form-text small">This will be your username.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Phone Number</label>
+                            <input type="tel" id="mobile" class="form-control" placeholder="9876543210" pattern="[0-9]{10}" required>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-4 divider-start-next">
+                        <div class="form-section-title">Jurisdiction Assignment</div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">District</label>
+                            <select id="district" class="form-select" onchange="loadBlocks()" required>
+                                <option value="">Loading districts...</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Block</label>
+                            <select id="block" class="form-select" onchange="loadPanchayats()" disabled required>
+                                <option value="">-- Select District First --</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Gram Panchayat</label>
+                            <select id="panchayat" class="form-select" disabled required>
+                                <option value="">-- Select Block First --</option>
+                            </select>
+                        </div>
+
+                        <div id="apiStatus" class="small text-muted fst-italic mt-2">
+                            <i class="fas fa-spinner fa-spin"></i> Connecting to server...
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-top pt-3 mt-2">
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" id="declaration" required>
+                        <label class="form-check-label small text-muted" for="declaration">
+                            I hereby declare that I am the duly elected Sarpanch of the selected Panchayat.
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-submit w-100 rounded-pill">Submit Application for Review</button>
+            </form>
+
+            <div class="text-center mt-4">
+                <a href="official_login.html" class="text-decoration-none fw-semibold text-secondary">
+                    <i class="fas fa-arrow-left"></i> Already have an account? Login here
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- CONFIGURATION ---
+    const LOCATION_API = "http://localhost:8080/api/locations";
+    const AUTH_API = "http://localhost:8080/api/auth";
+
+    let locationData = {};
+
+    // 1. Fetch Location Data Immediately
+    window.addEventListener('load', function() {
+        const districtSelect = document.getElementById("district");
+        const statusText = document.getElementById("apiStatus");
+
+        fetch(LOCATION_API)
+            .then(res => {
+                if (!res.ok) throw new Error("Backend Connection Failed");
+                return res.json();
+            })
+            .then(data => {
+                locationData = data;
+                districtSelect.innerHTML = '<option value="">-- Select Your District --</option>';
+
+                if (Object.keys(data).length === 0) {
+                    statusText.innerHTML = '<i class="fas fa-exclamation-triangle text-warning"></i> Data empty.';
+                    return;
+                }
+
+                Object.keys(locationData).forEach(dist => {
+                    let option = document.createElement("option");
+                    option.value = dist;
+                    option.text = dist;
+                    districtSelect.add(option);
+                });
+
+                statusText.innerHTML = '<i class="fas fa-check-circle text-success"></i> Data loaded from server.';
+            })
+            .catch(err => {
+                console.error("❌ Error:", err);
+                districtSelect.innerHTML = '<option value="">Server Error</option>';
+                statusText.innerHTML = '<i class="fas fa-times-circle text-danger"></i> Server not reachable.';
+            });
+    });
+
+    // 2. Load Blocks
+    function loadBlocks() {
+        const district = document.getElementById("district").value;
+        const blockSelect = document.getElementById("block");
+        const panchayatSelect = document.getElementById("panchayat");
+
+        blockSelect.innerHTML = '<option value="">-- Select Block --</option>';
+        panchayatSelect.innerHTML = '<option value="">Select District First</option>';
+        blockSelect.disabled = true;
+        panchayatSelect.disabled = true;
+
+        if (district && locationData[district]) {
+            blockSelect.disabled = false;
+            Object.keys(locationData[district]).forEach(block => {
+                let option = document.createElement("option");
+                option.value = block;
+                option.text = block;
+                blockSelect.add(option);
+            });
+        }
+    }
+
+    // 3. Load Panchayats
+    function loadPanchayats() {
+        const district = document.getElementById("district").value;
+        const block = document.getElementById("block").value;
+        const panchayatSelect = document.getElementById("panchayat");
+
+        panchayatSelect.innerHTML = '<option value="">-- Select Panchayat --</option>';
+        panchayatSelect.disabled = true;
+
+        if (district && block && locationData[district][block]) {
+            panchayatSelect.disabled = false;
+            locationData[district][block].forEach(gp => {
+                let option = document.createElement("option");
+                option.value = gp;
+                option.text = gp;
+                panchayatSelect.add(option);
+            });
+        }
+    }
+
+    // 4. Submit Registration Form (FIXED LOGIC)
+    document.getElementById("regForm").addEventListener("submit", async function(e) {
+        e.preventDefault();
+
+        const submitBtn = document.querySelector("button[type='submit']");
+        const statusDiv = document.getElementById("statusMsg");
+
+        // Reset Status
+        statusDiv.classList.add("d-none");
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Processing...';
+        submitBtn.disabled = true;
+
+        const data = {
+            name: document.getElementById("name").value,
+            email: document.getElementById("email").value,
+            district: document.getElementById("district").value,
+            block: document.getElementById("block").value,
+            panchayat: document.getElementById("panchayat").value,
+            role: "Sarpanch",
+            otp: "000000" // Manual approval via Admin Panel
+        };
+
+        try {
+            const response = await fetch(AUTH_API + "/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            });
+
+            // A. Get Raw Text first to prevent JSON crashes
+            const text = await response.text();
+
+            // B. Try to parse JSON
+            let result;
+            try {
+                result = JSON.parse(text);
+            } catch (err) {
+                // If parsing fails, treat the text as the message
+                result = { message: text || "Unknown Error occurred" };
+            }
+
+            // C. Check HTTP Status (200 is OK, 400/500 is Error)
+            if (!response.ok) {
+                // If server sent an error (400), throw it to the catch block
+                throw new Error(result.message);
+            }
+
+            // --- SUCCESS ---
+            submitBtn.innerHTML = 'Submit Application for Review';
+            submitBtn.disabled = false;
+
+            statusDiv.className = "alert alert-success";
+            statusDiv.innerHTML = `✅ <b>Success!</b><br>${result.message || "Application Submitted."}`;
+            statusDiv.classList.remove("d-none");
+
+            document.getElementById("regForm").reset();
+
+            // Redirect after 3 seconds
+            setTimeout(() => window.location.href = "official_login.html", 3000);
+
+        } catch (error) {
+            // --- ERROR ---
+            console.error("Registration Error:", error);
+            submitBtn.innerHTML = 'Submit Application for Review';
+            submitBtn.disabled = false;
+
+            statusDiv.className = "alert alert-danger";
+            statusDiv.innerHTML = `❌ <b>Registration Failed:</b><br>${error.message}`;
+            statusDiv.classList.remove("d-none");
+        }
+    });
+</script>
+
+</body>
+</html>

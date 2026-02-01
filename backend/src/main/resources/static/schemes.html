@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Government Schemes - MyPanchayat</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { color: #2c3e50; }
+
+        .scheme-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .scheme-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-left: 5px solid #2ecc71; /* Green accent */
+            transition: transform 0.2s;
+        }
+
+        .scheme-card:hover { transform: translateY(-5px); }
+
+        .scheme-title { font-size: 1.2em; font-weight: bold; color: #27ae60; margin-bottom: 10px; }
+        .scheme-amt { font-size: 1.5em; color: #333; font-weight: bold; margin: 10px 0; }
+        .scheme-desc { color: #666; font-size: 0.9em; margin-bottom: 15px; }
+        .eligibility { background: #e8f5e9; padding: 10px; border-radius: 5px; font-size: 0.85em; color: #2e7d32; }
+
+        .apply-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-top: 15px;
+            background-color: #3498db;
+            color: white;
+            text-align: center;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .apply-btn:hover { background-color: #2980b9; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>🏛️ Government Schemes & Benefits</h1>
+    <p>Know your rights. Claim your benefits.</p>
+</div>
+
+<div class="scheme-container" id="schemeList">
+    <p style="text-align:center;">Loading schemes...</p>
+</div>
+
+<script>
+    // Fetch schemes from our backend
+    fetch('/api/schemes')
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('schemeList');
+            container.innerHTML = ''; // Clear loading text
+
+            data.forEach(scheme => {
+                const card = `
+                    <div class="scheme-card">
+                        <div class="scheme-title">${scheme.name}</div>
+                        <div class="scheme-desc">${scheme.description}</div>
+                        <div class="scheme-amt">₹${scheme.benefitAmount.toLocaleString()}</div>
+                        <div class="eligibility"><strong>Who is eligible:</strong> ${scheme.eligibility}</div>
+                        <a href="#" class="apply-btn" onclick="alert('Feature coming soon: Apply for ${scheme.name}')">Check Eligibility</a>
+                    </div>
+                `;
+                container.innerHTML += card;
+            });
+        })
+        .catch(error => console.error('Error:', error));
+</script>
+
+</body>
+</html>
