@@ -92,14 +92,25 @@
                     </div>
 
                     <div class="row mb-3">
+
                         <div class="col-md-4">
-                            <label class="small fw-bold">Photo</label>
-                            <input type="file" id="photoInput" class="form-control" accept="image/*">
+                            <label class="small fw-bold">Live Photo (Compulsory)</label>
+                            <div class="border rounded bg-light text-center p-2">
+                                <video id="cameraStream" autoplay playsinline style="width: 100%; max-height: 150px; display: none; background: #000; border-radius: 5px;"></video>
+                                <img id="photoPreview" style="width: 100%; max-height: 150px; display: none;" class="rounded">
+
+                                <button type="button" id="startCamBtn" class="btn btn-sm btn-outline-primary w-100 mt-2" onclick="startCamera()">📷 Open Camera</button>
+                                <button type="button" id="captureBtn" class="btn btn-sm btn-success w-100 mt-2" onclick="takeSnapshot()" style="display: none;">📸 Snap Picture</button>
+                                <button type="button" id="retakeBtn" class="btn btn-sm btn-warning w-100 mt-2" onclick="retakePhoto()" style="display: none;">🔄 Retake</button>
+                            </div>
+                            <canvas id="photoCanvas" style="display: none;"></canvas>
                         </div>
+
                         <div class="col-md-4">
                             <label class="small fw-bold">Video</label>
                             <input type="file" id="videoInput" class="form-control" accept="video/*">
                         </div>
+
                         <div class="col-md-4">
                             <label class="small fw-bold">Voice Note</label>
                             <div class="d-flex gap-2">
@@ -112,6 +123,7 @@
                             </div>
                         </div>
                     </div>
+
                     <button type="button" class="btn btn-gov w-100 p-2" onclick="openWardModal()">Proceed to Submit</button>
                 </form>
             </div>
@@ -146,7 +158,10 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+    // NEW: Added livePhotoBlob and cameraStream
     let audioBlob = null, mediaRecorder, audioChunks = [], wardModalInstance, currentUser = null, currentPanchayatId = null, currentPanchayatName = "Odisha";
+    let livePhotoBlob = null;
+    let cameraStream = null;
 
     window.onload = function() {
         const modalElem = document.getElementById('wardModal');
@@ -236,19 +251,62 @@
     function stopRecording() { if(mediaRecorder) mediaRecorder.stop(); }
     function deleteAudio() { audioBlob = null; document.getElementById("audioPreviewContainer").style.display = 'none'; }
 
-    // SUBMISSION (Fully Fixed)
-    function openWardModal() {
-    // Check if a photo is attached
-    const photo = document.getElementById("photoInput").files[0];
+    // 📷 LIVE CAMERA FUNCTIONS
+    async function startCamera() {
+        try {
+            cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+            const videoEl = document.getElementById('cameraStream');
+            videoEl.srcObject = cameraStream;
 
-    if (!photo) {
-        alert("⚠️ Please attach a photo! It is compulsory for this grievance.");
-        return; // Stops the modal from opening
+            videoEl.style.display = 'block';
+            document.getElementById('startCamBtn').style.display = 'none';
+            document.getElementById('captureBtn').style.display = 'block';
+            document.getElementById('photoPreview').style.display = 'none';
+        } catch (err) {
+            alert("❌ Camera access denied! Please allow permissions in your browser.");
+        }
     }
 
-    // If they have a photo, open the ward selection
-    wardModalInstance.show();
-}
+    function takeSnapshot() {
+        const videoEl = document.getElementById('cameraStream');
+        const canvas = document.getElementById('photoCanvas');
+        const context = canvas.getContext('2d');
+
+        canvas.width = videoEl.videoWidth;
+        canvas.height = videoEl.videoHeight;
+        context.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+
+        canvas.toBlob(blob => {
+            livePhotoBlob = blob; // Save the blob!
+
+            const preview = document.getElementById('photoPreview');
+            preview.src = URL.createObjectURL(blob);
+            preview.style.display = 'block';
+
+            // Turn off camera light
+            cameraStream.getTracks().forEach(track => track.stop());
+            videoEl.style.display = 'none';
+
+            document.getElementById('captureBtn').style.display = 'none';
+            document.getElementById('retakeBtn').style.display = 'block';
+        }, 'image/jpeg');
+    }
+
+    function retakePhoto() {
+        livePhotoBlob = null;
+        document.getElementById('retakeBtn').style.display = 'none';
+        startCamera();
+    }
+
+    // SUBMISSION (Fully Fixed for Live Camera)
+    function openWardModal() {
+        // Check if they took a LIVE photo
+        if (!livePhotoBlob) {
+            alert("⚠️ Please tap 'Open Camera' and snap a picture! It is compulsory.");
+            return;
+        }
+        wardModalInstance.show();
+    }
 
     async function finalSubmit() {
         const formData = new FormData();
@@ -256,18 +314,26 @@
         formData.append("description", document.getElementById("complaintDesc").value);
         formData.append("ward", document.getElementById("modalWard").value);
         formData.append("userId", currentUser.id);
+
         const lat = document.getElementById("latitude").value;
-const lon = document.getElementById("longitude").value;
-if (lat && lon) {
-    formData.append("latitude", lat);
-    formData.append("longitude", lon);
-}
+        const lon = document.getElementById("longitude").value;
+        if (lat && lon) {
+            formData.append("latitude", lat);
+            formData.append("longitude", lon);
+        }
 
         if (currentPanchayatId) formData.append("panchayatId", currentPanchayatId);
         else formData.append("panchayatName", currentPanchayatName);
 
-        const photo = document.getElementById("photoInput").files[0];
-        if (photo) formData.append("photo", photo);
+        // Append the live captured photo!
+        if (livePhotoBlob) {
+            formData.append("photo", livePhotoBlob, "live_capture.jpg");
+        }
+
+        // Keep existing video & audio append logic
+        const video = document.getElementById("videoInput").files[0];
+        if (video) formData.append("video", video);
+
         if (audioBlob) formData.append("audio", audioBlob, "voice.mp3");
 
         try {
@@ -277,7 +343,6 @@ if (lat && lon) {
             });
 
             if (res.ok) {
-                // HARDCODED SUCCESS MESSAGE - This completely stops the "undefined" error.
                 alert("✅ Grievance submitted successfully!");
                 wardModalInstance.hide();
                 location.reload();
