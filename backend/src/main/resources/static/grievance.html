@@ -97,6 +97,16 @@
                 <option value="Ward 5">Ward 5</option>
             </select>
         </div>
+        <div class="form-group" style="margin-top: 15px; margin-bottom: 15px; padding: 15px; background-color: #f8f9fa; border-radius: 5px; border: 1px solid #ddd;">
+            <label>Location Detection (Required for Smart Routing)</label><br>
+            <button type="button" id="getLocationBtn" onclick="getLocation()" class="btn btn-warning" style="margin-bottom: 10px;">
+                📍 Get My Exact Location
+            </button>
+            <p id="locationStatus" style="color: red; font-size: 14px; margin: 0;">Location not detected yet. Please click the button.</p>
+
+            <input type="hidden" id="latitude" name="latitude">
+            <input type="hidden" id="longitude" name="longitude">
+        </div>
         <div class="form-group">
             <label>Description of Issue</label>
             <textarea id="description" rows="4" placeholder="Describe the problem in detail..."></textarea>
@@ -126,58 +136,109 @@
 </div>
 
 <script>
-    // 1. Function to Submit Data
-    function submitComplaint() {
-        const data = {
-            citizenName: document.getElementById('citizenName').value || "Anonymous",
-            category: document.getElementById('category').value,
-            ward: document.getElementById('ward').value,
-            description: document.getElementById('description').value
-        };
+    function submitComplaint(event) {
+       if (event) event.preventDefault(); // Stop page reload
 
-        fetch('/api/complaints/add', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        })
-        .then(response => response.json())
-        .then(data => {
-            alert('Complaint Submitted Successfully! ID: ' + data.id);
-            location.reload(); // Refresh to show in list
-        })
-        .catch(error => console.error('Error:', error));
-    }
+       // Create a "digital envelope" that can hold files and text
+       const formData = new FormData();
 
-    // 2. Function to Load Data
-    function loadComplaints() {
-        fetch('/api/complaints')
-        .then(response => response.json())
-        .then(data => {
-            const table = document.getElementById('complaintTable');
-            table.innerHTML = ''; // Clear existing
+       // 1. Add Text Data
+       formData.append("citizenName", document.getElementById('citizenName').value || "Anonymous");
+       formData.append("mobileNumber", "1234567890"); // Add your actual mobile input ID here if you have one
+       formData.append("ward", document.getElementById('ward').value);
+       formData.append("description", document.getElementById('description').value);
+       formData.append("userId", 1); // Replace with actual logged-in User ID
 
-            // Sort by latest first
-            data.reverse();
+       // 2. Add GPS Data
+       const lat = document.getElementById('latitude').value;
+       const lon = document.getElementById('longitude').value;
+       if (lat && lon) {
+           formData.append("latitude", lat);
+           formData.append("longitude", lon);
+       }
 
-            data.forEach(c => {
-                const statusClass = c.status === 'RESOLVED' ? 'status-resolved' : 'status-pending';
-                const row = `
-                    <tr>
-                        <td><strong>${c.category}</strong><br><small style="color:#777">${c.description.substring(0,30)}...</small></td>
-                        <td>${c.ward}</td>
-                        <td>${c.createdDate}</td>
-                        <td style="color:#e74c3c; font-weight:bold;">${c.deadlineDate}</td>
-                        <td><span class="status-badge ${statusClass}">${c.status}</span></td>
-                    </tr>
-                `;
-                table.innerHTML += row;
-            });
-        })
-        .catch(error => console.error('Error:', error));
-    }
+       // 3. Add Files (If you have file inputs in your HTML, use their IDs. If not, ignore this part)
+       const photoInput = document.getElementById('photo');
+       if (photoInput && photoInput.files.length > 0) {
+           formData.append("photo", photoInput.files[0]);
+       }
 
-    // Load complaints when page opens
-    window.onload = loadComplaints;
+       // Send it to the Smart Controller we built in Step 4!
+       fetch('/api/complaints', { // Notice: No '/add' here!
+           method: 'POST',
+           body: formData // No headers needed, browser handles FormData automatically
+       })
+       .then(response => {
+           if (!response.ok) throw new Error("Server rejected the request");
+           return response.json();
+       })
+       .then(data => {
+           alert(data.message || 'Complaint Submitted Successfully!');
+           location.reload();
+       })
+       .catch(error => console.error('Error submitting:', error));
+   }
+       // --- NEW GPS FUNCTION ---
+   function getLocation() {
+       const statusText = document.getElementById("locationStatus");
+       const latInput = document.getElementById("latitude");
+       const lonInput = document.getElementById("longitude");
+
+       if (navigator.geolocation) {
+           statusText.innerText = "Locating... Please wait.";
+           statusText.style.color = "orange";
+
+           navigator.geolocation.getCurrentPosition(
+               function(position) {
+                   // Success! Fill the hidden fields
+                   latInput.value = position.coords.latitude;
+                   lonInput.value = position.coords.longitude;
+
+                   statusText.innerText = "✅ Location captured! (" + position.coords.latitude.toFixed(4) + ", " + position.coords.longitude.toFixed(4) + ")";
+                   statusText.style.color = "green";
+               },
+               function(error) {
+                   // User denied permission or error occurred
+                   statusText.innerText = "❌ Location access denied. Please allow GPS.";
+                   statusText.style.color = "red";
+               },
+               { enableHighAccuracy: true }
+           );
+       } else {
+           statusText.innerText = "Geolocation is not supported by your browser.";
+       }
+   }
+
+       // 2. Function to Load Data
+       function loadComplaints() {
+           fetch('/api/complaints')
+           .then(response => response.json())
+           .then(data => {
+               const table = document.getElementById('complaintTable');
+               table.innerHTML = ''; // Clear existing
+
+               // Sort by latest first
+               data.reverse();
+
+               data.forEach(c => {
+                   const statusClass = c.status === 'RESOLVED' ? 'status-resolved' : 'status-pending';
+                   const row = `
+                       <tr>
+                           <td><strong>${c.category}</strong><br><small style="color:#777">${c.description.substring(0,30)}...</small></td>
+                           <td>${c.ward}</td>
+                           <td>${c.createdDate}</td>
+                           <td style="color:#e74c3c; font-weight:bold;">${c.deadlineDate}</td>
+                           <td><span class="status-badge ${statusClass}">${c.status}</span></td>
+                       </tr>
+                   `;
+                   table.innerHTML += row;
+               });
+           })
+           .catch(error => console.error('Error:', error));
+       }
+
+       // Load complaints when page opens
+       window.onload = loadComplaints;
 </script>
 
 </body>

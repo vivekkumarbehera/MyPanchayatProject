@@ -9,18 +9,18 @@ import java.util.List;
 @Repository
 public interface ComplaintRepository extends JpaRepository<Complaint, Long> {
 
-    // 1. For Public Search (Partial Match)
-    @Query("SELECT c FROM Complaint c WHERE LOWER(c.panchayat.name) LIKE LOWER(CONCAT('%', :name, '%'))")
-    List<Complaint> searchByPanchayatName(@Param("name") String name);
-
-    // 2. For User "My Applications"
+    // --- YOUR EXISTING METHODS (Kept safe so dashboard works) ---
     List<Complaint> findByUserId(Long userId);
 
-    // 3. For Sarpanch Dashboard (Strict Filter by ID)
     List<Complaint> findByPanchayatId(Long panchayatId);
 
-    // ✅ FIXED: MANUAL QUERY for Strict Name Search
-    // We use @Query here to prevent the "Unable to ignore case" error.
-    @Query("SELECT c FROM Complaint c WHERE LOWER(c.panchayat.name) = LOWER(:panchayatName)")
-    List<Complaint> findComplaintsByVillage(@Param("panchayatName") String panchayatName);
+    @Query("SELECT c FROM Complaint c WHERE LOWER(c.panchayat.name) = LOWER(:village)")
+    List<Complaint> findComplaintsByVillage(@Param("village") String village);
+
+    // ==========================================
+    // --- NEW METHOD FOR AI CLUSTERING ---
+    // ==========================================
+    // This grabs only unresolved complaints in the same Panchayat.
+    // The AI will use this list to check if someone already reported the same issue nearby!
+    List<Complaint> findByPanchayatIdAndStatus(Long panchayatId, String status);
 }
