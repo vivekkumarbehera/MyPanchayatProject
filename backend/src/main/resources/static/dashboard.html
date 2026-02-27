@@ -92,7 +92,6 @@
                     </div>
 
                     <div class="row mb-3">
-
                         <div class="col-md-4">
                             <label class="small fw-bold">Live Photo (Compulsory)</label>
                             <div class="border rounded bg-light text-center p-2">
@@ -158,10 +157,10 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // NEW: Added livePhotoBlob and cameraStream
     let audioBlob = null, mediaRecorder, audioChunks = [], wardModalInstance, currentUser = null, currentPanchayatId = null, currentPanchayatName = "Odisha";
     let livePhotoBlob = null;
     let cameraStream = null;
+    let gpsAddressString = ""; // NEW: Stores the physical address for verification
 
     window.onload = function() {
         const modalElem = document.getElementById('wardModal');
@@ -205,7 +204,7 @@
         loadMyHistory();
     };
 
-    // 📍 GPS & ADDRESS
+    // 📍 GPS & ADDRESS with Geofencing Storage
     function getLocation() {
         const statusText = document.getElementById("locationStatus");
         const addressText = document.getElementById("addressDisplay");
@@ -219,7 +218,11 @@
                 try {
                     const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
                     const data = await res.json();
-                    if (data.display_name) { addressText.innerText = "🏠 " + data.display_name; addressText.style.display = "block"; }
+                    if (data.display_name) {
+                        gpsAddressString = data.display_name; // Save the real address
+                        addressText.innerText = "🏠 " + data.display_name;
+                        addressText.style.display = "block";
+                    }
                 } catch (e) { console.log("Address Error"); }
             }, () => { statusText.innerText = "❌ GPS Denied"; });
         }
@@ -263,7 +266,7 @@
             document.getElementById('captureBtn').style.display = 'block';
             document.getElementById('photoPreview').style.display = 'none';
         } catch (err) {
-            alert("❌ Camera access denied! Please allow permissions in your browser.");
+            alert("❌ Camera access denied! Please allow permissions.");
         }
     }
 
@@ -271,22 +274,16 @@
         const videoEl = document.getElementById('cameraStream');
         const canvas = document.getElementById('photoCanvas');
         const context = canvas.getContext('2d');
-
         canvas.width = videoEl.videoWidth;
         canvas.height = videoEl.videoHeight;
         context.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
-
         canvas.toBlob(blob => {
-            livePhotoBlob = blob; // Save the blob!
-
+            livePhotoBlob = blob;
             const preview = document.getElementById('photoPreview');
             preview.src = URL.createObjectURL(blob);
             preview.style.display = 'block';
-
-            // Turn off camera light
             cameraStream.getTracks().forEach(track => track.stop());
             videoEl.style.display = 'none';
-
             document.getElementById('captureBtn').style.display = 'none';
             document.getElementById('retakeBtn').style.display = 'block';
         }, 'image/jpeg');
@@ -298,13 +295,32 @@
         startCamera();
     }
 
-    // SUBMISSION (Fully Fixed for Live Camera)
+    // GEOFENCING VALIDATION
     function openWardModal() {
-        // Check if they took a LIVE photo
+        // 1. Photo Check
         if (!livePhotoBlob) {
-            alert("⚠️ Please tap 'Open Camera' and snap a picture! It is compulsory.");
+            alert("⚠️ Please snap a live picture! It is compulsory.");
             return;
         }
+
+        // 2. GPS Presence Check
+        if (!gpsAddressString) {
+            alert("⚠️ You must capture your exact location before submitting.");
+            return;
+        }
+
+        // 3. Geofencing: Check if GPS address contains the Panchayat Name
+        const registeredPanchayat = currentPanchayatName.toLowerCase();
+        const physicalAddress = gpsAddressString.toLowerCase();
+
+        // Strict validation: Skip check only if it's the generic default "Odisha"
+        if (registeredPanchayat !== "odisha" && registeredPanchayat !== "odisha village") {
+            if (!physicalAddress.includes(registeredPanchayat)) {
+                alert(`🚫 ACCESS DENIED (Geofencing)\n\nLocation Mismatch!\nYour GPS says you are in: ${gpsAddressString}\n\nYou must be physically inside ${currentPanchayatName} to submit a grievance.`);
+                return;
+            }
+        }
+
         wardModalInstance.show();
     }
 
@@ -325,15 +341,10 @@
         if (currentPanchayatId) formData.append("panchayatId", currentPanchayatId);
         else formData.append("panchayatName", currentPanchayatName);
 
-        // Append the live captured photo!
-        if (livePhotoBlob) {
-            formData.append("photo", livePhotoBlob, "live_capture.jpg");
-        }
+        if (livePhotoBlob) formData.append("photo", livePhotoBlob, "live_capture.jpg");
 
-        // Keep existing video & audio append logic
         const video = document.getElementById("videoInput").files[0];
         if (video) formData.append("video", video);
-
         if (audioBlob) formData.append("audio", audioBlob, "voice.mp3");
 
         try {
@@ -351,31 +362,25 @@
             }
         } catch (e) {
             console.error("Fetch error:", e);
-            alert("❌ Server Error: Backend not responding.");
+            alert("❌ Server Error.");
         }
     }
 
-    // LOAD DATA
+    // FEED & HISTORY
     function loadPublicGrievances() {
         fetch(`http://localhost:8080/api/complaints?panchayatName=${encodeURIComponent(currentPanchayatName)}`)
             .then(res => res.json())
             .then(data => {
                 const container = document.getElementById("grievanceList");
                 container.innerHTML = "";
-
                 if (!data || data.length === 0) {
-                    container.innerHTML = "<p class='text-center text-muted mt-5'>No complaints found for this village.</p>";
+                    container.innerHTML = "<p class='text-center text-muted mt-5'>No complaints found.</p>";
                     return;
                 }
-
                 data.reverse().forEach(c => {
-                    const score = c.urgencyScore ? c.urgencyScore : 0;
-                    const reports = c.reportCount ? c.reportCount : 1;
-                    const status = c.status ? c.status : "Pending";
-                    const ward = c.ward ? c.ward : "Unknown";
-
+                    const score = c.urgencyScore || 0;
+                    const status = c.status || "Pending";
                     const priorityClass = score > 60 ? 'priority-high' : (score > 30 ? 'priority-med' : 'priority-low');
-
                     container.innerHTML += `
                     <div class="gov-card p-3 ${priorityClass}">
                         <div class="d-flex justify-content-between">
@@ -383,13 +388,8 @@
                             <span class="status-badge status-${status}">${status}</span>
                         </div>
                         <h6 class="mt-2 fw-bold">${c.description || "Voice/Media Complaint"}</h6>
-                        <p class="small text-muted mb-0">Ward: ${ward} | Reports: ${reports}</p>
                     </div>`;
                 });
-            })
-            .catch(err => {
-                console.error("Failed to fetch grievances:", err);
-                document.getElementById("grievanceList").innerHTML = "<p class='text-center text-danger mt-5'>Could not load feed.</p>";
             });
     }
 
@@ -400,9 +400,8 @@
                 const tbody = document.getElementById("myAppsTable");
                 tbody.innerHTML = "";
                 data.forEach(c => {
-                    const score = c.urgencyScore ? c.urgencyScore : 0;
-                    const mapsLink = (c.latitude && c.longitude) ? `<a href="https://maps.google.com/?q=${c.latitude},${c.longitude}" target="_blank" class="btn btn-sm btn-outline-info">📍 Map</a>` : "N/A";
-                    tbody.innerHTML += `<tr><td>#${c.id}</td><td class="fw-bold text-primary">${score.toFixed(0)}%</td><td>${c.description ? c.description.substring(0,25) : "Media"}</td><td>${mapsLink}</td><td><span class="badge bg-secondary">${c.status || "Pending"}</span></td></tr>`;
+                    const score = c.urgencyScore || 0;
+                    tbody.innerHTML += `<tr><td>#${c.id}</td><td class="fw-bold text-primary">${score.toFixed(0)}%</td><td>${c.description ? c.description.substring(0,25) : "Media"}</td><td>📍 Captured</td><td><span class="badge bg-secondary">${c.status || "Pending"}</span></td></tr>`;
                 });
             });
     }
