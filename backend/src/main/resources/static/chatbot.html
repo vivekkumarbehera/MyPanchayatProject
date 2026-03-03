@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panchayat Mitra AI | Help Desk</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { background: #f4f7f6; height: 100vh; display: flex; flex-direction: column; }
+        .chat-header { background: #003366; color: white; padding: 20px; text-align: center; border-bottom: 4px solid #ff9933; }
+        #chat-box { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .msg { max-width: 75%; padding: 12px 18px; border-radius: 20px; font-size: 1rem; line-height: 1.4; }
+        .user-msg { align-self: flex-end; background: #003366; color: white; border-bottom-right-radius: 2px; }
+        .ai-msg { align-self: flex-start; background: white; color: #333; border-bottom-left-radius: 2px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .input-area { background: white; padding: 20px; border-top: 1px solid #ddd; display: flex; gap: 10px; }
+        .typing { font-size: 0.8rem; color: #777; margin-left: 20px; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="chat-header">
+    <a href="dashboard.html" style="color: white; float: left; font-size: 1.2rem;"><i class="fas fa-arrow-left"></i></a>
+    <h2 class="m-0"><i class="fas fa-robot"></i> Panchayat Mitra AI</h2>
+    <p class="small m-0">Official Virtual Assistant for Odisha Villages</p>
+</div>
+
+<div id="chat-box">
+    <div class="msg ai-msg">Namaste! I am your real-time AI assistant. Ask me anything about Panchayat services, schemes, or how to file a grievance.</div>
+</div>
+
+<div id="typing-indicator" class="typing">AI is thinking...</div>
+
+<div class="input-area">
+    <input type="text" id="user-input" class="form-control" placeholder="Type your question here (e.g. How to report a broken road?)...">
+    <button class="btn btn-primary px-4" onclick="askAI()"><i class="fas fa-paper-plane"></i> Send</button>
+</div>
+
+<script>
+    async function askAI() {
+        const input = document.getElementById('user-input');
+        const chatBox = document.getElementById('chat-box');
+        const typing = document.getElementById('typing-indicator');
+        const text = input.value.trim();
+
+        if (!text) return;
+
+        // 1. Add User Message to Screen
+        chatBox.innerHTML += `<div class="msg user-msg">${text}</div>`;
+        input.value = "";
+        typing.style.display = "block";
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        try {
+            // 2. THE REAL AI CONNECTION
+            // Replace this URL with your actual backend endpoint (Spring Boot / Flask)
+            const response = await fetch('http://localhost:8080/api/ai/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: text })
+            });
+
+            const data = await response.json();
+
+            // 3. Add AI Response to Screen
+            typing.style.display = "none";
+            chatBox.innerHTML += `<div class="msg ai-msg">${data.reply}</div>`;
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+        } catch (error) {
+            typing.style.display = "none";
+            chatBox.innerHTML += `<div class="msg ai-msg text-danger">⚠️ Connection Error: Is your backend running?</div>`;
+        }
+    }
+
+    // Allow Enter Key
+    document.getElementById('user-input').addEventListener('keypress', (e) => {
+        if(e.key === 'Enter') askAI();
+    });
+</script>
+
+</body>
+</html>
